@@ -54,7 +54,7 @@ def _copy_files(self, tag="tag"):
     if hasattr(self, "tag"):
         tag = self.tag
     
-    for fname in ["INCAR", "OUTCAR", "WAVECAR",
+    for fname in ["INCAR", "OUTCAR", "WAVECAR", "CONTCAR"
                   "WAVEDER", "DOSCAR", "vasprun.xml"]:
         if os.path.exists(fname):
             f_new = ".".join((fname, tag))

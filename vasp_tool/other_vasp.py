@@ -46,8 +46,7 @@ class VaspRelax(Vasp):
         Vasp.__init__(self, restart=restart,
                       output_template=output_template,
                       track_output=track_output,
-                      **default_params,
-        )
+                      **default_params)
 
 
 
