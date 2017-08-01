@@ -5,6 +5,7 @@
 
 from ase.calculators.vasp.create_input import GenerateVaspInput
 from ase.calculators.vasp import Vasp
+from pymatgen.io.vasp import Vasprun
 import os, os.path, shutil
 
 # Tell vasp calculator to write the POSCAR using vasp5 style
