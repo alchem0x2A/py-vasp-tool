@@ -4,9 +4,15 @@
 ################################################
 
 from ase.calculators.vasp import Vasp
-import patch_vasp
 from ase.units import GPa
 from pymatgen.io.vasp import Vasprun, Outcar
+
+# Some fix for importing
+import sys
+if sys.version_info < (3, 0):
+    import patch_vasp
+else:
+    from . import patch_vasp
 
 
 class VaspRelax(Vasp):
