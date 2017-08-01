@@ -57,7 +57,7 @@ def _copy_files(self, tag="tag"):
     for fname in ["INCAR", "OUTCAR", "WAVECAR",
                   "WAVEDER", "DOSCAR", "vasprun.xml"]:
         if os.path.exists(fname):
-            f_new = ".".join(fname, tag)
+            f_new = ".".join((fname, tag))
             shutil.copy(fname, f_new)
 
 # Hot patch to the Vasp class
