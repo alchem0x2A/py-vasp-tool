@@ -73,5 +73,5 @@ Vasp.read_bandgap = _read_bandgap
 Vasp.load_vasprun = _load_vasprun
 Vasp.read_extern_stress = _read_extern_stress
 Vasp.copy_files = _copy_files
-Vasp.get_final_E = _get_final_E
+Vasp.read_final_E = _get_final_E
 
