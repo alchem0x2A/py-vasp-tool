@@ -9,11 +9,12 @@ from pymatgen.io.vasp import Vasprun
 import os, os.path, shutil
 
 # Tell vasp calculator to write the POSCAR using vasp5 style
-def _new_write_input(self, atoms, directory='./', vasp5=True):
+def _new_write_input(self, atoms, directory='./', direct=True, vasp5=True):
         from ase.io.vasp import write_vasp
         from os.path import join
         write_vasp(join(directory, 'POSCAR'),
                    self.atoms_sorted,
+                   direct=direct,
                    symbol_count=self.symbol_count, vasp5=vasp5)
         self.write_incar(atoms, directory=directory)
         self.write_potcar(directory=directory)
@@ -55,15 +56,22 @@ def _copy_files(self, tag="tag"):
     if hasattr(self, "tag"):
         tag = self.tag
     
-    for fname in ["INCAR", "OUTCAR", "WAVECAR", "CONTCAR"
+    for fname in ["INCAR", "OUTCAR", "WAVECAR", "CONTCAR",
                   "WAVEDER", "DOSCAR", "vasprun.xml"]:
         if os.path.exists(fname):
             f_new = ".".join((fname, tag))
             shutil.copy(fname, f_new)
+
+# Get the final potential from vasprun.xml 
+def _get_final_E(self, filename="vasprun.xml"):
+        v = Vasprun(filename)
+        fe = v.final_energy()
+        return fe
 
 # Hot patch to the Vasp class
 Vasp.read_bandgap = _read_bandgap
 Vasp.load_vasprun = _load_vasprun
 Vasp.read_extern_stress = _read_extern_stress
 Vasp.copy_files = _copy_files
+Vasp.get_final_E = _get_final_E
 
