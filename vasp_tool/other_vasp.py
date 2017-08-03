@@ -36,8 +36,8 @@ class VaspRelax(Vasp):
                           "nelm": 200,  # max SC steps
                           "nelmin": 4,  # min SC steps
                           "ibrion": 2,  # do relaxation
-                          "isif": 2,    # default setting for stress tensor (2)
-                          "nsw": 50,   # numbers for relaxation
+                          "isif": 3,    # ionic + position
+                          "nsw": 200,   # numbers for relaxation
                           "xc": "pbe",  # use PBE
         }
         for key in kwargs:
