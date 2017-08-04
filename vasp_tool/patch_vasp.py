@@ -68,10 +68,104 @@ def _get_final_E(self, filename="vasprun.xml"):
         fe = v.final_energy()
         return fe
 
+# path for writing kpoints
+# taken from jasp
+
+def _write_kpoints(self, fname=None):
+    """Write out the KPOINTS file.
+    The KPOINTS file format is as follows:
+    line 1: a comment
+    line 2: number of kpoints
+        n <= 0   Automatic kpoint generation
+        n > 0    explicit number of kpoints
+    line 3: kpt format
+        if n > 0:
+            C,c,K,k = cartesian coordinates
+            anything else = reciprocal coordinates
+        if n <= 0
+            M,m,G,g for Monkhorst-Pack or Gamma grid
+            anything else is a special case
+    line 4: if n <= 0, the Monkhorst-Pack grid
+        if n > 0, then a line per kpoint
+    line 5: if n <=0 it is the gamma shift
+    After the kpts may be tetrahedra, but we do now support that for
+    now.
+    """
+    if fname is None:
+        fname = os.path.join(self.directory, 'KPOINTS')
+
+    p = self.parameters
+
+    kpts = p.get('kpts', None)  # this is a list, or None
+
+    if kpts is None:
+        NKPTS = None
+    elif len(np.array(kpts).shape) == 1:
+        NKPTS = 0  # automatic
+    else:
+        NKPTS = len(p['kpts'])
+
+    # figure out the mode
+    if NKPTS == 0 and not p.get('gamma', None):
+        MODE = 'm'  # automatic monkhorst-pack
+    elif NKPTS == 0 and p.get('gamma', None):
+        MODE = 'g'  # automatic gamma monkhorst pack
+    # we did not trigger automatic kpoints
+    elif p.get('kpts_nintersections', None) is not None:
+        MODE = 'l'
+    elif p.get('reciprocal', None) is True:
+        MODE = 'r'
+    else:
+        MODE = 'c'
+
+    with open(fname, 'w') as f:
+        # line 1 - comment
+        f.write('KPOINTS created by Atomic Simulation Environment\n')
+        # line 2 - number of kpts
+        if MODE in ['c', 'k', 'm', 'g', 'r']:
+            f.write('{}\n'.format(NKPTS))
+        elif MODE in ['l']:  # line mode, default intersections is 10
+            f.write('{}\n'.format(p.get('kpts_nintersections')))
+
+        # line 3
+        if MODE in ['m', 'g']:
+            if MODE == 'm':
+                f.write('Monkhorst-Pack\n')  # line 3
+            elif MODE == 'g':
+                f.write('Gamma\n')
+        elif MODE in ['c', 'k']:
+            f.write('Cartesian\n')
+        elif MODE in ['l']:
+            f.write('Line-mode\n')
+        else:
+            f.write('Reciprocal\n')
+
+        # line 4
+        if MODE in ['m', 'g']:
+            f.write('{0} {1} {2}\n'.format(*p.get('kpts', (1, 1, 1))))
+        elif MODE in ['c', 'k', 'r']:
+            for n in range(NKPTS):
+                # I assume you know to provide the weights
+                f.write('{0} {1} {2} {3}\n'.format(*p['kpts'][n]))
+        elif MODE in ['l']:
+            if p.get('reciprocal', None) is False:
+                f.write('Cartesian\n')
+            else:
+                f.write('Reciprocal\n')
+            for n in range(NKPTS):
+                f.write('{0} {1} {2}\n'.format(*p['kpts'][n]))
+
+        # line 5 - only if we are in automatic mode
+        if MODE in ['m', 'g']:
+            if p.get('gamma', None):
+                f.write('{0} {1} {2}\n'.format(*p['gamma']))
+            else:
+                f.write('0.0 0.0 0.0\n')
+                
 # Hot patch to the Vasp class
 Vasp.read_bandgap = _read_bandgap
 Vasp.load_vasprun = _load_vasprun
 Vasp.read_extern_stress = _read_extern_stress
 Vasp.copy_files = _copy_files
 Vasp.read_final_E = _get_final_E
-
+Vasp.write_kpoints = _write_kpoints
