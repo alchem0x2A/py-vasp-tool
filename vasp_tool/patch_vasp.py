@@ -71,7 +71,7 @@ def _get_final_E(self, filename="vasprun.xml"):
 # path for writing kpoints
 # taken from jasp
 
-def _write_kpoints(self, fname=None):
+def _write_kpoints(self, directory="", fname=None):
     """Write out the KPOINTS file.
     The KPOINTS file format is as follows:
     line 1: a comment
@@ -91,10 +91,12 @@ def _write_kpoints(self, fname=None):
     After the kpts may be tetrahedra, but we do now support that for
     now.
     """
+    import numpy as np
+    
     if fname is None:
-        fname = os.path.join(self.directory, 'KPOINTS')
+        fname = os.path.join(directory, 'KPOINTS')
 
-    p = self.parameters
+    p = self.input_params
 
     kpts = p.get('kpts', None)  # this is a list, or None
 
@@ -120,7 +122,10 @@ def _write_kpoints(self, fname=None):
 
     with open(fname, 'w') as f:
         # line 1 - comment
-        f.write('KPOINTS created by Atomic Simulation Environment\n')
+        comm = 'KPOINTS created by Atomic Simulation Environment\n'
+        if hasattr(self, "kpath"):
+                comm = "KPATH: {} \n".format("-".join(self.kpath))
+        f.write(comm)
         # line 2 - number of kpts
         if MODE in ['c', 'k', 'm', 'g', 'r']:
             f.write('{}\n'.format(NKPTS))

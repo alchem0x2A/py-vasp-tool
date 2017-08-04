@@ -50,7 +50,7 @@ class VaspRelax(Vasp):
                       **default_params)
 
 class VaspGround(Vasp):         # Calculate the ground state, always restart
-    def __init__(self, restart=True, output_template="vasp",
+    def __init__(self, restart=False, output_template="vasp",
                  track_output=False, **kwargs):
         # First generate using normal Vasp class taking default params
         # Overwrite the parameters by user default
@@ -81,8 +81,25 @@ class VaspGround(Vasp):         # Calculate the ground state, always restart
                       track_output=track_output,
                       **default_params)
 
+# Generate Kpoint path using symmetry
+def gen_line_path(kpath, lattice_type):
+    valid_pts = ibz_points[lattice_type]
+    kpoints = []
+    for i, p in enumerate(kpath):
+        if p == "G":
+            p = "Gamma"
+        cood = valid_pts[p]
+        # Double the kpoints for intermediate points
+        if (i == 0) or (i == len(kpath) - 1):
+            kpoints.append(cood)
+        else:
+            [kpoints.append(cood) for i in range(2)]
+    # print(kpoints)
+    return kpoints
+
+    
 class VaspBandStructure(Vasp):         # Calculate the ground state, always restart
-    def __init__(self, restart=True, output_template="vasp",
+    def __init__(self, restart=False, output_template="vasp",
                  track_output=False, kpath=None,
                  lattice_type=None, **kwargs):
         # First generate using normal Vasp class taking default params
@@ -105,7 +122,7 @@ class VaspBandStructure(Vasp):         # Calculate the ground state, always rest
                           "ibrion": -1,  # do relaxation
                           "xc": "pbe0",
                           "lorbit": 11,   # write DOSCAR and PROCAR
-                          "algo": "exact"  # Diagonization
+                          "algo": "exact",  # Diagonization
                           "kpts_nintersections": 10,
                           "reciprocal": True,
         }
@@ -121,7 +138,8 @@ class VaspBandStructure(Vasp):         # Calculate the ground state, always rest
                       output_template=output_template,
                       track_output=track_output,
                       **default_params)
-
+        self.kpath = kpath
+        self.lattice_type = lattice_type
 
 
 if __name__ == "__main__":
