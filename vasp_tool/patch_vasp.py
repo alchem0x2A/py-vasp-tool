@@ -51,13 +51,21 @@ def _read_extern_stress(self, form="kB", filename="OUTCAR"):
                 stress = stress * 0.1 * GPa
     return stress
 
-def _copy_files(self, tag="tag"):
+def _copy_files(self, select_names=None, exclude_names=None,
+                tag="tag"):
     # copy_file is supposed to be used only after the calculation!
     if hasattr(self, "tag"):
         tag = self.tag
-    
-    for fname in ["INCAR", "OUTCAR", "WAVECAR", "CONTCAR",
-                  "WAVEDER", "DOSCAR", "vasprun.xml"]:
+    default_names = ["INCAR", "OUTCAR", "WAVECAR", "CONTCAR",
+                  "WAVEDER", "DOSCAR", "vasprun.xml"]
+    if exclude_names != None:
+        tmp = [n for p in default_names if p not in exclude_names]
+        default_names = tmp
+        break
+    elif select_names != None:
+        default_names = select_names
+        
+    for fname in default_names:
         if os.path.exists(fname):
             f_new = ".".join((fname, tag))
             shutil.copy(fname, f_new)
