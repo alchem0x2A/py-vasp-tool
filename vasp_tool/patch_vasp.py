@@ -6,40 +6,48 @@
 from ase.calculators.vasp.create_input import GenerateVaspInput
 from ase.calculators.vasp import Vasp
 from pymatgen.io.vasp import Vasprun
-import os, os.path, shutil
+import os
+import os.path
+import shutil
+from ase.io import read
 
 # Tell vasp calculator to write the POSCAR using vasp5 style
+
+
 def _new_write_input(self, atoms, directory='./', direct=True, vasp5=True):
-        from ase.io.vasp import write_vasp
-        from os.path import join
-        write_vasp(join(directory, 'POSCAR'),
-                   self.atoms_sorted,
-                   direct=direct,
-                   symbol_count=self.symbol_count, vasp5=vasp5)
-        self.write_incar(atoms, directory=directory)
-        self.write_potcar(directory=directory)
-        self.write_kpoints(directory=directory)
-        self.write_sort_file(directory=directory)
+    from ase.io.vasp import write_vasp
+    from os.path import join
+    write_vasp(join(directory, 'POSCAR'),
+               self.atoms_sorted,
+               direct=direct,
+               symbol_count=self.symbol_count, vasp5=vasp5)
+    self.write_incar(atoms, directory=directory)
+    self.write_potcar(directory=directory)
+    self.write_kpoints(directory=directory)
+    self.write_sort_file(directory=directory)
 
 # Hot patch for the GenerateVaspInput class
 GenerateVaspInput.write_input = _new_write_input
 
 
 def _load_vasprun(self, filename="vasprun.xml"):
-        self.vasprun = Vasprun(filename)
+    self.vasprun = Vasprun(filename)
 
-    # read the bandgap from vasprun.xml
+# read the bandgap from vasprun.xml
+
+
 def _read_bandgap(self):
-        if not hasattr(self, "vasprun"):
-            self.load_vasprun()
-        # From DOS
-        dos = self.vasprun.complete_dos
-        bg_dos = dos.get_gap()
-        # From Band structure
-        bs = self.vasprun.get_band_structure()
-        bg_bs = bs.get_band_gap()
-        # Return the bandgaps calculated by DOS or band structure
-        return (bg_dos, bg_bs)
+    if not hasattr(self, "vasprun"):
+        self.load_vasprun()
+    # From DOS
+    dos = self.vasprun.complete_dos
+    bg_dos = dos.get_gap()
+    # From Band structure
+    bs = self.vasprun.get_band_structure()
+    bg_bs = bs.get_band_gap()
+    # Return the bandgaps calculated by DOS or band structure
+    return (bg_dos, bg_bs)
+
 
 def _read_extern_stress(self, form="kB", filename="OUTCAR"):
     stress = None
@@ -51,33 +59,37 @@ def _read_extern_stress(self, form="kB", filename="OUTCAR"):
                 stress = stress * 0.1 * GPa
     return stress
 
-def _copy_files(self, select_names=None, exclude_names=None,
+
+def _copy_files(self, select_names=None,
+                exclude_names=None,
                 tag="tag"):
     # copy_file is supposed to be used only after the calculation!
     if hasattr(self, "tag"):
         tag = self.tag
     default_names = ["INCAR", "OUTCAR", "WAVECAR", "CONTCAR",
-                  "WAVEDER", "DOSCAR", "vasprun.xml"]
+                     "WAVEDER", "DOSCAR", "vasprun.xml"]
     if exclude_names != None:
-        tmp = [n for p in default_names if p not in exclude_names]
+        tmp = [p for p in default_names if p not in exclude_names]
         default_names = tmp
-        break
     elif select_names != None:
         default_names = select_names
-        
+
     for fname in default_names:
         if os.path.exists(fname):
             f_new = ".".join((fname, tag))
             shutil.copy(fname, f_new)
 
-# Get the final potential from vasprun.xml 
+# Get the final potential from vasprun.xml
+
+
 def _get_final_E(self, filename="vasprun.xml"):
-        v = Vasprun(filename)
-        fe = v.final_energy.real
-        return fe
+    v = Vasprun(filename)
+    fe = v.final_energy.real
+    return fe
 
 # path for writing kpoints
 # taken from jasp
+
 
 def _write_kpoints(self, directory="", fname=None):
     """Write out the KPOINTS file.
@@ -100,7 +112,7 @@ def _write_kpoints(self, directory="", fname=None):
     now.
     """
     import numpy as np
-    
+
     if fname is None:
         fname = os.path.join(directory, 'KPOINTS')
 
@@ -132,7 +144,7 @@ def _write_kpoints(self, directory="", fname=None):
         # line 1 - comment
         comm = 'KPOINTS created by Atomic Simulation Environment\n'
         if hasattr(self, "kpath"):
-                comm = "KPATH: {} \n".format("-".join(self.kpath))
+            comm = "KPATH: {} \n".format("-".join(self.kpath))
         f.write(comm)
         # line 2 - number of kpts
         if MODE in ['c', 'k', 'm', 'g', 'r']:
@@ -176,24 +188,26 @@ def _write_kpoints(self, directory="", fname=None):
                 f.write('0.0 0.0 0.0\n')
 
 # Patch method for get the atoms from previous calculation
+
+
 def read_atoms_sorted(path=""):
-        f_sort = os.path.join(path, 'ase-sort.dat')
-        f_contcar = os.path.join(path, "CONTCAR")
-        if os.path.isfile(f_sort):
-                sort = []
-                resort = []
-                line = None
-                with open(f_sort, 'r') as dat_sort:
-                        lines = dat_sort.readlines()
-                for line in lines:
-                        data = line.split()
-                        sort.append(int(data[0]))
-                        resort.append(int(data[1]))
-                atoms = ase.io.read(f_contcar, format='vasp')[self.resort]
-        else:
-                atoms = ase.io.read(f_contcar, format='vasp')
-        return atoms
-        
+    f_sort = os.path.join(path, 'ase-sort.dat')
+    f_contcar = os.path.join(path, "CONTCAR")
+    if os.path.isfile(f_sort):
+        sort = []
+        resort = []
+        line = None
+        with open(f_sort, 'r') as dat_sort:
+            lines = dat_sort.readlines()
+        for line in lines:
+            data = line.split()
+            sort.append(int(data[0]))
+            resort.append(int(data[1]))
+        atoms = read(f_contcar, format='vasp')[resort]
+    else:
+        atoms = read(f_contcar, format='vasp')
+    return atoms
+
 
 # Hot patch to the Vasp class
 Vasp.read_bandgap = _read_bandgap
