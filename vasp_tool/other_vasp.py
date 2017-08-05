@@ -141,7 +141,39 @@ class VaspBandStructure(Vasp):         # Calculate the ground state, always rest
         self.kpath = kpath
         self.lattice_type = lattice_type
 
+class VaspHybridBandgap(Vasp):         # DFT+HF Bandgap
+    def __init__(self, restart=False, output_template="vasp",
+                 track_output=False, **kwargs):
+        # First generate using normal Vasp class taking default params
+        # Overwrite the parameters by user default
+        default_params = {"istart": 1,  # Start from previous
+                          "icharg": 2,  # should be 2 for relaxation
+                          "amix": 0.1,   # mixing parameters
+                          "bmix": 0.01,
+                          "ismear": 0,  # Gaussian smear
+                          "sigma": 0.01,  # smearing strength
+                          "ediff": 1e-8,  # energy difference
+                          "ediffg": 1e-7,
+                          "prec": "Accurate",  # precision
+                          "lwave": True,      # Do not store wave function
+                          "lcharg": True,    # Do not store the charge density
+                          "lvtot": False, # Do not store the local potential
+                          "encut": 800, # energy cutoff
+                          "nelm": 500,  # max SC steps
+                          "nelmin": 4,  # min SC steps
+                          "ibrion": -1,  # do relaxation
+                          "xc": "pbe0",  # use PBE
+                          "algo": "exact",  # or algo = D
+                          "precfock": "fast",  # use fast fft grid for fock matrx
+        }
+        for key in kwargs:
+            default_params[key] = kwargs[key]
 
+        Vasp.__init__(self, restart=restart,
+                      output_template=output_template,
+                      track_output=track_output,
+                      **default_params)
+        
 if __name__ == "__main__":
     # Test
     pass

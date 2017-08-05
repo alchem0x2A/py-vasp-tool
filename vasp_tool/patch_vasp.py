@@ -65,7 +65,7 @@ def _copy_files(self, tag="tag"):
 # Get the final potential from vasprun.xml 
 def _get_final_E(self, filename="vasprun.xml"):
         v = Vasprun(filename)
-        fe = v.final_energy()
+        fe = v.final_energy.real
         return fe
 
 # path for writing kpoints
@@ -166,7 +166,7 @@ def _write_kpoints(self, directory="", fname=None):
                 f.write('{0} {1} {2}\n'.format(*p['gamma']))
             else:
                 f.write('0.0 0.0 0.0\n')
-                
+
 # Hot patch to the Vasp class
 Vasp.read_bandgap = _read_bandgap
 Vasp.load_vasprun = _load_vasprun
