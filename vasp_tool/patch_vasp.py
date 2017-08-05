@@ -167,6 +167,26 @@ def _write_kpoints(self, directory="", fname=None):
             else:
                 f.write('0.0 0.0 0.0\n')
 
+# Patch method for get the atoms from previous calculation
+def read_atoms_sorted(path=""):
+        f_sort = os.path.join(path, 'ase-sort.dat')
+        f_contcar = os.path.join(path, "CONTCAR")
+        if os.path.isfile(f_sort):
+                sort = []
+                resort = []
+                line = None
+                with open(f_sort, 'r') as dat_sort:
+                        lines = dat_sort.readlines()
+                for line in lines:
+                        data = line.split()
+                        sort.append(int(data[0]))
+                        resort.append(int(data[1]))
+                atoms = ase.io.read(f_contcar, format='vasp')[self.resort]
+        else:
+                atoms = ase.io.read(f_contcar, format='vasp')
+        return atoms
+        
+
 # Hot patch to the Vasp class
 Vasp.read_bandgap = _read_bandgap
 Vasp.load_vasprun = _load_vasprun
