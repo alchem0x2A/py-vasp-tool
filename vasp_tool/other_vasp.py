@@ -122,7 +122,7 @@ class VaspBandStructure(Vasp):         # Calculate the ground state, always rest
                           "ibrion": -1,  # do relaxation
                           "xc": "pbe0",
                           "lorbit": 11,   # write DOSCAR and PROCAR
-                          "algo": "exact",  # Diagonization
+                          # "algo": "e",  # Diagonization
                           "kpts_nintersections": 10,
                           "reciprocal": True,
         }
@@ -163,7 +163,7 @@ class VaspHybridBandgap(Vasp):         # DFT+HF Bandgap
                           "nelmin": 4,  # min SC steps
                           "ibrion": -1,  # do relaxation
                           "xc": "pbe0",  # use PBE
-                          "algo": "exact",  # or algo = D
+                          "algo": "Damped",  # or algo = D, not Diag!
                           "precfock": "fast",  # use fast fft grid for fock matrx
         }
         for key in kwargs:
