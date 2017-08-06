@@ -152,11 +152,11 @@ class VaspHybridBandgap(Vasp):         # DFT+HF Bandgap
                           "bmix": 0.01,
                           "ismear": 0,  # Gaussian smear
                           "sigma": 0.01,  # smearing strength
-                          "ediff": 1e-8,  # energy difference
-                          "ediffg": 1e-7,
+                          "ediff": 1e-6,  # energy difference
+                          "ediffg": 1e-5,
                           "prec": "Accurate",  # precision
                           "lwave": True,      # Do not store wave function
-                          "lcharg": True,    # Do not store the charge density
+                          "lcharg": False,    # Do not store the charge density
                           "lvtot": False, # Do not store the local potential
                           "encut": 800, # energy cutoff
                           "nelm": 500,  # max SC steps

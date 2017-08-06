@@ -5,5 +5,5 @@ else:
     from . import patch_vasp
 from .patch_vasp import read_atoms_sorted
 from .other_vasp import VaspRelax, VaspGround, VaspBandStructure
-from .other_vasp import VaspHybridBandgap
+from .other_vasp import VaspHybridBandgap, Vasp
 
