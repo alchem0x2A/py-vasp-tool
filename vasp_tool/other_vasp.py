@@ -7,6 +7,7 @@ from ase.calculators.vasp import Vasp
 from ase.units import GPa
 from pymatgen.io.vasp import Vasprun, Outcar
 from ase.dft.kpoints import ibz_points, get_bandpath
+from .paramters import default_parameters
 
 # Some fix for importing
 import sys
@@ -15,7 +16,24 @@ if sys.version_info < (3, 0):
 else:
     from . import patch_vasp
 
-
+# Common class for Vasp from paramters
+class VaspGen(Vasp):
+    def __init__(self, restart=None, output_template="vasp",
+                 track_output=True, profile=None, **kwargs):
+        if profile is not None:
+            if type(profile) == dict:
+                dp = profile    # profile as dict
+            elif profile in default_parameters:
+                dp = default_parameters[profile]
+            else:
+                raise ValueError("Profile not recognized !")
+        dp.update(**kwargs)
+        # update the paramter
+        Vasp.__init__(self, restart=restart,
+                      output_template=output_template,
+                      track_output=track_output,
+                      **dp)
+    
 class VaspRelax(Vasp):
     def __init__(self, restart=None, output_template="vasp",
                  track_output=False, **kwargs):
@@ -142,6 +160,39 @@ class VaspBandStructure(Vasp):         # Calculate the ground state, always rest
         self.lattice_type = lattice_type
 
 class VaspHybridBandgap(Vasp):         # DFT+HF Bandgap
+    def __init__(self, restart=False, output_template="vasp",
+                 track_output=False, **kwargs):
+        # First generate using normal Vasp class taking default params
+        # Overwrite the parameters by user default
+        default_params = {"istart": 1,  # Start from previous
+                          "icharg": 2,  # should be 2 for relaxation
+                          "amix": 0.1,   # mixing parameters
+                          "bmix": 0.01,
+                          "ismear": 0,  # Gaussian smear
+                          "sigma": 0.01,  # smearing strength
+                          "ediff": 1e-6,  # energy difference
+                          "ediffg": 1e-5,
+                          "prec": "Accurate",  # precision
+                          "lwave": True,      # Do not store wave function
+                          "lcharg": False,    # Do not store the charge density
+                          "lvtot": False, # Do not store the local potential
+                          "encut": 800, # energy cutoff
+                          "nelm": 500,  # max SC steps
+                          "nelmin": 4,  # min SC steps
+                          "ibrion": -1,  # do relaxation
+                          "xc": "pbe0",  # use PBE
+                          "algo": "Damped",  # or algo = D, not Diag!
+                          "precfock": "fast",  # use fast fft grid for fock matrx
+        }
+        for key in kwargs:
+            default_params[key] = kwargs[key]
+
+        Vasp.__init__(self, restart=restart,
+                      output_template=output_template,
+                      track_output=track_output,
+                      **default_params)
+
+class VaspGW(Vasp):         # GW mode
     def __init__(self, restart=False, output_template="vasp",
                  track_output=False, **kwargs):
         # First generate using normal Vasp class taking default params

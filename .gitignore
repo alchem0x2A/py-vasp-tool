@@ -102,3 +102,4 @@ ENV/
 
 *~
 /.DS_Store
+/vasp_tool/.DS_Store

@@ -3,7 +3,7 @@
 # will change the behavior of the POSCAR writer to use vasp5 format #
 #####################################################################
 
-from ase.calculators.vasp.create_input import GenerateVaspInput
+from ase.calculators.vasp.create_input import GenerateVaspInput, bool_keys, int_keys
 from ase.calculators.vasp import Vasp
 from pymatgen.io.vasp import Vasprun
 import os
@@ -87,10 +87,19 @@ def _get_final_E(self, filename="vasprun.xml"):
     fe = v.final_energy.real
     return fe
 
+def _run(self):
+    # Handle the incomplete BSE vasprun problem
+    Vasp.run(self)
+    with open("vasprun.xml", "a+") as f:
+        end_pos = f.tell()
+        f.seek(end_pos - 12)
+        if f.read().strip() != "</modeling>":  # Not the last line
+            f.seek(end_pos)
+            f.write("</modeling>\n")
+            print("Warning! The vasprun.xml seems incomplete.")
+
 # path for writing kpoints
 # taken from jasp
-
-
 def _write_kpoints(self, directory="", fname=None):
     """Write out the KPOINTS file.
     The KPOINTS file format is as follows:
@@ -216,3 +225,13 @@ Vasp.read_extern_stress = _read_extern_stress
 Vasp.copy_files = _copy_files
 Vasp.read_final_E = _get_final_E
 Vasp.write_kpoints = _write_kpoints
+Vasp.run = _run
+
+# Add missing keys
+bool_keys += ["lusew",
+              "ladder",
+              "lhartree",
+              "lvdwexpansion",]
+
+int_keys += ["antires",
+]
