@@ -17,7 +17,7 @@ else:
     from . import patch_vasp
 
 # Common class for Vasp from paramters
-class VaspGen(Vasp):
+class VaspGeneral(Vasp):
     def __init__(self, restart=None, output_template="vasp",
                  track_output=True, profile=None, **kwargs):
         if profile is not None:

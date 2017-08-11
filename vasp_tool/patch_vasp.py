@@ -3,7 +3,8 @@
 # will change the behavior of the POSCAR writer to use vasp5 format #
 #####################################################################
 
-from ase.calculators.vasp.create_input import GenerateVaspInput, bool_keys, int_keys
+from ase.calculators.vasp.create_input import GenerateVaspInput
+from ase.calculators.vasp.create_input import bool_keys, int_keys, float_keys
 from ase.calculators.vasp import Vasp
 from pymatgen.io.vasp import Vasprun
 import os
@@ -234,4 +235,5 @@ bool_keys += ["lusew",
               "lvdwexpansion",]
 
 int_keys += ["antires",
+             "omegamax",
 ]

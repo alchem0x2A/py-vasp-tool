@@ -57,7 +57,7 @@ par_ground = {**def_par, **new_start,
 par_hybrid = {**def_par, **restart,
               **g_smear, **fine_conv,
               **write_wave,
-              **norelax
+              **norelax,
               "algo": "Damped",
               "precfock": "Normal"}
 
@@ -87,7 +87,7 @@ par_gw0 = {**def_par, **restart,
            "algo": "GW0",
            "nelm": 1,           # single shot, no scGW
            "nelmin": 1,
-           "noemga": 64,
+           "nomega": 64,
            "omegamax": 64,
            "nbands": 56,
            "nedos": 10**4,
@@ -103,7 +103,7 @@ par_gw0_none = {**def_par, **restart,
                 "algo": "None",
                 "nelm": 1,           # single shot, no scGW
                 "nelmin": 1,
-                "noemga": 64,
+                "nomega": 64,
                 "omegamax": 64,
                 "nbands": 56,
                 "nedos": 10**4,
@@ -112,13 +112,13 @@ par_gw0_none = {**def_par, **restart,
                 "loptics": True,
 }
 
-par_bse = {**def_par, **restart
+par_bse = {**def_par, **restart,
            **g_smear, **fine_conv,
            **write_wave,      # maybe need to recalc
            **norelax,
            "algo": "BSE",
            "nelm": 1,            # single shot
-           "noemga": 64,
+           "nomega": 64,
            "omegamax": 64,
            "nbands": 56,
            "nbandsgw": 56,      # needs to be tweaked
