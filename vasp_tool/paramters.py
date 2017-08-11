@@ -10,8 +10,6 @@ def_par = {"amix": 0.1,   # mixing parameters
            "bmix": 0.01,
            "prec": "Accurate",
            "encut": 800,
-           "npar": 4,
-           "kpar": 2,
            "nelm": 200,  # max SC steps
            "nelmin": 4,  # min SC steps
 }
@@ -59,13 +57,15 @@ norelax = {"ibrion": -1,
 par_relax = merge_dict(def_par, new_start,
                        g_smear, fine_conv,
                        nowrite_wave,
-                       relax_all)
+                       relax_all,
+                       **{"npar": 4})
 
 
 par_ground = merge_dict(def_par, new_start,
-              g_smear, fine_conv,
-              write_wave,
-              norelax)
+                        g_smear, fine_conv,
+                        write_wave,
+                        norelax,
+                        **{"npar": 4})
 
 # par_ground = {**def_par, **new_start,
               # **g_smear, **fine_conv,
@@ -77,7 +77,8 @@ par_hybrid = merge_dict(def_par, restart,
               write_wave,
               norelax,
               **{"algo": "Damped",
-                 "precfock": "Normal"})
+                 "precfock": "Normal",
+                 "npar": 4})
 
 # par_hybrid = {**def_par, **restart,
 #               **g_smear, **fine_conv,
@@ -91,7 +92,8 @@ par_rpa = merge_dict(def_par, restart,
                      write_wave,
                      norelax,
                      **{"loptics": True,
-                        "nbands": 56,})
+                        "nbands": 56,
+                        "npar": 4})
 
 par_diag = merge_dict(def_par, restart,
            g_smear, fine_conv,
@@ -101,7 +103,8 @@ par_diag = merge_dict(def_par, restart,
                "algo": "Exact",
                "lpead": True,
                "nbands": 56,
-               "nedos": 10**4,})
+               "nedos": 10**4,
+               "npar": 4})
 
 par_gw0 = merge_dict(def_par, restart,
                      g_smear, fine_conv,
@@ -116,7 +119,8 @@ par_gw0 = merge_dict(def_par, restart,
                         "nedos": 10**4,
                         "encutgw": 300,
                         "lusew": True,
-                        "lrpa": True,})
+                        "lrpa": True,
+                        "kpar": 2})
 
 # only calculate WAVEDER
 par_gw0_none = merge_dict(def_par, restart,
@@ -133,7 +137,8 @@ par_gw0_none = merge_dict(def_par, restart,
                              "encutgw": 300,
                              "lusew": True,
                              "loptics": True,
-                             "lrpa": True})
+                             "lrpa": True,
+                             "kpar": 2})
 
 par_bse = merge_dict(def_par, restart,
                      g_smear, fine_conv,
@@ -152,6 +157,7 @@ par_bse = merge_dict(def_par, restart,
                         "lhartree": True,
                         "lusew": True,
                         "lrpa": True,
+                        "kpar": 2,
                         "antires": 1,})
 
 # par_rpa = {**def_par, **restart,
