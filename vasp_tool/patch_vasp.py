@@ -235,7 +235,8 @@ Vasp.run = _run
 bool_keys += ["lusew",
               "ladder",
               "lhartree",
-              "lvdwexpansion",]
+              "lvdwexpansion",
+              "lorbitalreal"]
 
 int_keys += ["antires",
              "omegamax",
