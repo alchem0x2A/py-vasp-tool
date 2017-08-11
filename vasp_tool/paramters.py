@@ -115,7 +115,8 @@ par_gw0 = merge_dict(def_par, restart,
                         "nbands": 56,
                         "nedos": 10**4,
                         "encutgw": 300,
-                        "lusew": True,})
+                        "lusew": True,
+                        "lrpa": True,})
 
 # only calculate WAVEDER
 par_gw0_none = merge_dict(def_par, restart,
@@ -131,7 +132,8 @@ par_gw0_none = merge_dict(def_par, restart,
                              "nedos": 10**4,
                              "encutgw": 300,
                              "lusew": True,
-                             "loptics": True,})
+                             "loptics": True,
+                             "lrpa": True})
 
 par_bse = merge_dict(def_par, restart,
                      g_smear, fine_conv,
@@ -149,6 +151,7 @@ par_bse = merge_dict(def_par, restart,
                         "ladder": True,
                         "lhartree": True,
                         "lusew": True,
+                        "lrpa": True,
                         "antires": 1,})
 
 # par_rpa = {**def_par, **restart,
