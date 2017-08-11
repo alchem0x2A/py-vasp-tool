@@ -157,7 +157,7 @@ par_bse = merge_dict(def_par, restart,
                         "lhartree": True,
                         "lusew": True,
                         "lrpa": True,  # No kpar used for BSE calculation!
-                        "antires": 1,})
+                     })
 
 # par_rpa = {**def_par, **restart,
 #            **g_smear, **fine_conv,
