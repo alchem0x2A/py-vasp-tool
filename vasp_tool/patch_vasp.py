@@ -88,16 +88,18 @@ def _get_final_E(self, filename="vasprun.xml"):
     fe = v.final_energy.real
     return fe
 
+oldrun = Vasp.run
 def _run(self):
     # Handle the incomplete BSE vasprun problem
-    Vasp.run(self)
-    with open("vasprun.xml", "a+") as f:
-        end_pos = f.tell()
-        f.seek(end_pos - 12)
-        if f.read().strip() != "</modeling>":  # Not the last line
-            f.seek(end_pos)
-            f.write("</modeling>\n")
-            print("Warning! The vasprun.xml seems incomplete.")
+    oldrun(self)
+    if os.path.exists("vasprun.xml"):
+        with open("vasprun.xml", "a+") as f:
+            end_pos = f.tell()
+            f.seek(end_pos - 12)
+            if f.read().strip() != "</modeling>":  # Not the last line
+                f.seek(end_pos)
+                f.write("</modeling>\n")
+                print("Warning! The vasprun.xml seems incomplete.")
 
 # path for writing kpoints
 # taken from jasp
