@@ -1,3 +1,10 @@
+# The ugly python2-3.4 way
+def merge_dict(*presets, **keywords):
+    key_presets = []
+    for p in presets:
+        key_presets += list(p.items())
+    return dict(key_presets + list(keywords.items()))
+    
 # Parameters that almost not changed
 def_par = {"amix": 0.1,   # mixing parameters
            "bmix": 0.01,
@@ -43,93 +50,176 @@ norelax = {"ibrion": -1,
 }
 
 
-par_relax = {**def_par, **new_start,
-             **g_smear, **fine_conv,
-             **nowrite_wave,
-             **relax_all,
-}
+# par_relax = {**def_par, **new_start,
+             # **g_smear, **fine_conv,
+             # **nowrite_wave,
+             # **relax_all,
+# }
 
-par_ground = {**def_par, **new_start,
-              **g_smear, **fine_conv,
-              **write_wave,
-              **norelax}
+par_relax = merge_dict(def_par, new_start,
+                       g_smear, fine_conv,
+                       nowrite_wave,
+                       relax_all)
 
-par_hybrid = {**def_par, **restart,
-              **g_smear, **fine_conv,
-              **write_wave,
-              **norelax,
-              "algo": "Damped",
-              "precfock": "Normal"}
 
-par_rpa = {**def_par, **restart,
-           **g_smear, **fine_conv,
-           **write_wave,
-           **norelax,
-           "loptics": True,
-           "nbands": 56,
-}
+par_ground = merge_dict(def_par, new_start,
+              g_smear, fine_conv,
+              write_wave,
+              norelax)
 
-par_diag = {**def_par, **restart,
-           **g_smear, **fine_conv,
-           **write_wave,
-           **norelax,
-            "loptics": True,
-            "algo": "Exact",
-            "lpead": True,
-            "nbands": 56,
-            "nedos": 10**4,
-}
+# par_ground = {**def_par, **new_start,
+              # **g_smear, **fine_conv,
+              # **write_wave,
+              # **norelax}
 
-par_gw0 = {**def_par, **restart,
-           **g_smear, **fine_conv,
-           **write_wave,
-           **norelax,
-           "algo": "GW0",
-           "nelm": 1,           # single shot, no scGW
-           "nelmin": 1,
-           "nomega": 64,
-           "omegamax": 64,
-           "nbands": 56,
-           "nedos": 10**4,
-           "encutgw": 300,
-           "lusew": True,
-}
+par_hybrid = merge_dict(def_par, restart,
+              g_smear, fine_conv,
+              write_wave,
+              norelax,
+              **{"algo": "Damped",
+                 "precfock": "Normal"})
+
+# par_hybrid = {**def_par, **restart,
+#               **g_smear, **fine_conv,
+#               **write_wave,
+#               **norelax,
+#               "algo": "Damped",
+#               "precfock": "Normal"}
+
+par_rpa = merge_dict(def_par, restart,
+                     g_smear, fine_conv,
+                     write_wave,
+                     norelax,
+                     **{"loptics": True,
+                        "nbands": 56,})
+
+par_diag = merge_dict(def_par, restart,
+           g_smear, fine_conv,
+           write_wave,
+           norelax,
+            **{"loptics": True,
+               "algo": "Exact",
+               "lpead": True,
+               "nbands": 56,
+               "nedos": 10**4,})
+
+par_gw0 = merge_dict(def_par, restart,
+                     g_smear, fine_conv,
+                     write_wave,
+                     norelax,
+                     **{"algo": "GW0",
+                        "nelm": 1,           # single shot, no scGW
+                        "nelmin": 1,
+                        "nomega": 64,
+                        "omegamax": 64,
+                        "nbands": 56,
+                        "nedos": 10**4,
+                        "encutgw": 300,
+                        "lusew": True,})
 
 # only calculate WAVEDER
-par_gw0_none = {**def_par, **restart,
-                **g_smear, **fine_conv,
-                **nowrite_wave,
-                **norelax,
-                "algo": "None",
-                "nelm": 1,           # single shot, no scGW
-                "nelmin": 1,
-                "nomega": 64,
-                "omegamax": 64,
-                "nbands": 56,
-                "nedos": 10**4,
-                "encutgw": 300,
-                "lusew": True,
-                "loptics": True,
-}
+par_gw0_none = merge_dict(def_par, restart,
+                          g_smear, fine_conv,
+                          nowrite_wave,
+                          norelax,
+                          **{"algo": "None",
+                             "nelm": 1,           # single shot, no scGW
+                             "nelmin": 1,
+                             "nomega": 64,
+                             "omegamax": 64,
+                             "nbands": 56,
+                             "nedos": 10**4,
+                             "encutgw": 300,
+                             "lusew": True,
+                             "loptics": True,})
 
-par_bse = {**def_par, **restart,
-           **g_smear, **fine_conv,
-           **write_wave,      # maybe need to recalc
-           **norelax,
-           "algo": "BSE",
-           "nelm": 1,            # single shot
-           "nomega": 64,
-           "omegamax": 64,
-           "nbands": 56,
-           "nbandsgw": 56,      # needs to be tweaked
-           "nbandso": 4,        # needs to change to systems!
-           "nbandsv": 8,
-           "encutgw": 300,
-           "ladder": True,
-           "lhartree": True,
-           "lusew": True,
-           "antires": 1,
-}
+par_bse = merge_dict(def_par, restart,
+                     g_smear, fine_conv,
+                     write_wave,      # maybe need to recalc
+                     norelax,
+                     **{"algo": "BSE",
+                        "nelm": 1,            # single shot
+                        "nomega": 64,
+                        "omegamax": 64,
+                        "nbands": 56,
+                        "nbandsgw": 56,      # needs to be tweaked
+                        "nbandso": 4,        # needs to change to systems!
+                        "nbandsv": 8,
+                        "encutgw": 300,
+                        "ladder": True,
+                        "lhartree": True,
+                        "lusew": True,
+                        "antires": 1,})
+
+# par_rpa = {**def_par, **restart,
+#            **g_smear, **fine_conv,
+#            **write_wave,
+#            **norelax,
+#            "loptics": True,
+#            "nbands": 56,
+# }
+
+# par_diag = {**def_par, **restart,
+#            **g_smear, **fine_conv,
+#            **write_wave,
+#            **norelax,
+#             "loptics": True,
+#             "algo": "Exact",
+#             "lpead": True,
+#             "nbands": 56,
+#             "nedos": 10**4,
+# }
+
+# par_gw0 = {**def_par, **restart,
+#            **g_smear, **fine_conv,
+#            **write_wave,
+#            **norelax,
+#            "algo": "GW0",
+#            "nelm": 1,           # single shot, no scGW
+#            "nelmin": 1,
+#            "nomega": 64,
+#            "omegamax": 64,
+#            "nbands": 56,
+#            "nedos": 10**4,
+#            "encutgw": 300,
+#            "lusew": True,
+# }
+
+# # only calculate WAVEDER
+# par_gw0_none = {**def_par, **restart,
+#                 **g_smear, **fine_conv,
+#                 **nowrite_wave,
+#                 **norelax,
+#                 "algo": "None",
+#                 "nelm": 1,           # single shot, no scGW
+#                 "nelmin": 1,
+#                 "nomega": 64,
+#                 "omegamax": 64,
+#                 "nbands": 56,
+#                 "nedos": 10**4,
+#                 "encutgw": 300,
+#                 "lusew": True,
+#                 "loptics": True,
+# }
+
+# par_bse = {**def_par, **restart,
+#            **g_smear, **fine_conv,
+#            **write_wave,      # maybe need to recalc
+#            **norelax,
+#            "algo": "BSE",
+#            "nelm": 1,            # single shot
+#            "nomega": 64,
+#            "omegamax": 64,
+#            "nbands": 56,
+#            "nbandsgw": 56,      # needs to be tweaked
+#            "nbandso": 4,        # needs to change to systems!
+#            "nbandsv": 8,
+#            "encutgw": 300,
+#            "ladder": True,
+#            "lhartree": True,
+#            "lusew": True,
+#            "antires": 1,
+# }
 
 default_parameters = {"relax": par_relax,
                       "ground": par_ground,
