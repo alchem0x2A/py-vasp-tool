@@ -93,12 +93,13 @@ def _run(self):
     # Handle the incomplete BSE vasprun problem
     oldrun(self)
     if os.path.exists("vasprun.xml"):
-        with open("vasprun.xml", "a+") as f:
-            end_pos = f.tell()
-            f.seek(end_pos - 12)
-            if f.read().strip() != "</modeling>":  # Not the last line
-                f.seek(end_pos)
-                f.write("</modeling>\n")
+        with open("vasprun.xml", "rb+") as f:
+            f.seek(-12, 2)                        # to the -12
+            s = f.read()
+            s.decode("utf8")
+            if s.strip() != "</modeling>":  # Not the last line
+                f.seek(0, 2)                # To the last
+                f.write(b"</modeling>\n")
                 print("Warning! The vasprun.xml seems incomplete.")
 
 # path for writing kpoints
