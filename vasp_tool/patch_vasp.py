@@ -102,6 +102,7 @@ def _run(self):
                 f.write(b"</modeling>\n")
                 print("Warning! The vasprun.xml seems incomplete.")
 
+
 # path for writing kpoints
 # taken from jasp
 def _write_kpoints(self, directory="", fname=None):
@@ -241,3 +242,42 @@ bool_keys += ["lusew",
 int_keys += ["antires",
              "omegamax",
 ]
+
+# Patching the vasprun.xml for BSE calculations
+@property
+def _converged_electronic(self):
+    """
+    Checks that electronic step convergence has been reached in the final
+    ionic step
+    """
+    try:
+        final_esteps = self.ionic_steps[-1]["electronic_steps"]
+    except IndexError:
+        return False            # no actual ionic steps
+    if 'LEPSILON' in self.incar and self.incar['LEPSILON']:
+        i = 1
+        to_check = set(['e_wo_entrp', 'e_fr_energy', 'e_0_energy'])
+        while set(final_esteps[i].keys()) == to_check:
+            i += 1
+        return i + 1 != self.parameters["NELM"]
+    return len(final_esteps) < self.parameters["NELM"]
+
+@property
+def optical_transitions(self):
+    # Get optical transitions of BSE calculation
+    from xml.etree import ElementTree as ET
+    import numpy
+    ep = None
+    for event, elem in ET.iterparse(self.filename):
+        if ("name" in elem.attrib) and (elem.attrib["name"] == "opticaltransitions"):
+            ep = elem
+            break
+    ot_array = []
+    for v in ep:
+        # print(v)
+        ot_array.append(list(map(float, v.text.strip().split())))
+    ot_array = numpy.array(ot_array)
+    return ot_array
+
+Vasprun.converged_electronic = _converged_electronic
+Vasprun.optical_transitions = optical_transitions
