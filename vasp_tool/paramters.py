@@ -117,6 +117,7 @@ par_gw0 = merge_dict(def_par, restart,
                         "nbands": 56,
                         "nedos": 10**4,
                         "encutgw": 300,
+                        "lpead": True,
                         "lrpa": True,
                         "kpar": 2})
 
@@ -132,6 +133,7 @@ par_gw0_none = merge_dict(def_par, restart,
                              "nbands": 56,
                              "nedos": 10**4,
                              "encutgw": 300,
+                             "lpead": True,
                              "loptics": True,
                              "lrpa": True,
                              "kpar": 2})
@@ -148,6 +150,7 @@ par_bse = merge_dict(def_par, restart,
                         "nbandsgw": 56,      # needs to be tweaked
                         "nbandso": 4,        # needs to change to systems!
                         "nbandsv": 8,
+                        "lpead": True,
                         "encutgw": 300,
                         "ladder": True,
                         "lhartree": True,
