@@ -24,7 +24,7 @@ g_smear = {"ismear": 0,
            "sigma": 0.01}
 
 fine_conv = {"ediff": 1e-8,
-             "ediffg": 1e-7}
+             "ediffg": 1e-7, }
 
 rough_conv = {"ediff": 1e-5,
               "ediffg": 1e-4}
@@ -114,11 +114,9 @@ par_gw0 = merge_dict(def_par, restart,
                         "nelm": 1,           # single shot, no scGW
                         "nelmin": 1,
                         "nomega": 64,
-                        "omegamax": 64,
                         "nbands": 56,
                         "nedos": 10**4,
                         "encutgw": 300,
-                        "lusew": True,
                         "lrpa": True,
                         "kpar": 2})
 
@@ -131,11 +129,9 @@ par_gw0_none = merge_dict(def_par, restart,
                              "nelm": 1,           # single shot, no scGW
                              "nelmin": 1,
                              "nomega": 64,
-                             "omegamax": 64,
                              "nbands": 56,
                              "nedos": 10**4,
                              "encutgw": 300,
-                             "lusew": True,
                              "loptics": True,
                              "lrpa": True,
                              "kpar": 2})
