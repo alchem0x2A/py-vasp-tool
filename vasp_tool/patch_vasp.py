@@ -182,23 +182,23 @@ def _write_kpoints(self, directory="", fname=None):
 
         # line 4
         if MODE in ['m', 'g']:
-            f.write('{0:9f} {1:0.9f} {2:0.9f}\n'.format(*p.get('kpts', (1, 1, 1))))
+            f.write('{0:<9} {1:<9} {2:<9}\n'.format(*p.get('kpts', (1, 1, 1))))
         elif MODE in ['c', 'k', 'r']:
             for n in range(NKPTS):
                 # I assume you know to provide the weights
-                f.write('{0:9f} {1:9f} {2:9f} {3:4d}\n'.format(*p['kpts'][n]))
+                f.write('{0:<9} {1:<9} {2:<9} {3:<4}\n'.format(*p['kpts'][n]))
         elif MODE in ['l']:
             if p.get('reciprocal', None) is False:
                 f.write('Cartesian\n')
             else:
                 f.write('Reciprocal\n')
             for n in range(NKPTS):
-                f.write('{0:9f} {1:9f} {2:9f}\n'.format(*p['kpts'][n]))
+                f.write('{0:<9} {1:<9} {2:<9}\n'.format(*p['kpts'][n]))
 
         # line 5 - only if we are in automatic mode
         if MODE in ['m', 'g']:
             if p.get('gamma', None):
-                f.write('{0:9f} {1:9f} {2:9f}\n'.format(*p['gamma']))
+                f.write('{0:<9} {1:<9} {2:<9}\n'.format(*p['gamma']))
             else:
                 f.write('0.0 0.0 0.0\n')
 
