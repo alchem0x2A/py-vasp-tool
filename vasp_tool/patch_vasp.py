@@ -133,6 +133,7 @@ def _write_kpoints(self, directory="", fname=None):
     p = self.input_params
 
     kpts = p.get('kpts', None)  # this is a list, or None
+    # kpts_weight = p.get("kpts_weight", None)  # weights of the kpoints for BS
 
     if kpts is None:
         NKPTS = None
@@ -157,8 +158,8 @@ def _write_kpoints(self, directory="", fname=None):
     with open(fname, 'w') as f:
         # line 1 - comment
         comm = 'KPOINTS created by Atomic Simulation Environment\n'
-        if hasattr(self, "kpath"):
-            comm = "KPATH: {} \n".format("-".join(self.kpath))
+        if p.get("kpath", None) is not None:
+            comm = "KPATH: {} \n".format(p.get("kpath", None))
         f.write(comm)
         # line 2 - number of kpts
         if MODE in ['c', 'k', 'm', 'g', 'r']:
@@ -167,37 +168,37 @@ def _write_kpoints(self, directory="", fname=None):
             f.write('{}\n'.format(p.get('kpts_nintersections')))
 
         # line 3
-        if MODE in ['m', 'g']:
+        if MODE in ['m', 'g', 'l']:
             if MODE == 'm':
                 f.write('Monkhorst-Pack\n')  # line 3
             elif MODE == 'g':
                 f.write('Gamma\n')
+            else:
+                f.write("Line mode\n")
         elif MODE in ['c', 'k']:
             f.write('Cartesian\n')
-        elif MODE in ['l']:
-            f.write('Line-mode\n')
         else:
             f.write('Reciprocal\n')
 
         # line 4
         if MODE in ['m', 'g']:
-            f.write('{0} {1} {2}\n'.format(*p.get('kpts', (1, 1, 1))))
+            f.write('{0:9f} {1:0.9f} {2:0.9f}\n'.format(*p.get('kpts', (1, 1, 1))))
         elif MODE in ['c', 'k', 'r']:
             for n in range(NKPTS):
                 # I assume you know to provide the weights
-                f.write('{0} {1} {2} {3}\n'.format(*p['kpts'][n]))
+                f.write('{0:9f} {1:9f} {2:9f} {3:4d}\n'.format(*p['kpts'][n]))
         elif MODE in ['l']:
             if p.get('reciprocal', None) is False:
                 f.write('Cartesian\n')
             else:
                 f.write('Reciprocal\n')
             for n in range(NKPTS):
-                f.write('{0} {1} {2}\n'.format(*p['kpts'][n]))
+                f.write('{0:9f} {1:9f} {2:9f}\n'.format(*p['kpts'][n]))
 
         # line 5 - only if we are in automatic mode
         if MODE in ['m', 'g']:
             if p.get('gamma', None):
-                f.write('{0} {1} {2}\n'.format(*p['gamma']))
+                f.write('{0:9f} {1:9f} {2:9f}\n'.format(*p['gamma']))
             else:
                 f.write('0.0 0.0 0.0\n')
 

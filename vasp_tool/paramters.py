@@ -11,7 +11,7 @@ def_par = {"amix": 0.1,   # mixing parameters
            "prec": "Accurate",
            "encut": 800,
            "nelm": 200,  # max SC steps
-           "nelmin": 4,  # min SC steps
+           "nelmin": 5,  # min SC steps
 }
 
 new_start = {"istart": 0,
@@ -158,6 +158,15 @@ par_bse = merge_dict(def_par, restart,
                         "lrpa": True,  # No kpar used for BSE calculation!
                      })
 
+par_bandstruct_DFT = merge_dict(def_par, restart,
+                                g_smear, fine_conv,
+                                write_wave,
+                                norelax,
+                                **{"icharg": 11,  # keep previous charge density calculated
+                                   "lorbit": 11,  # DOCAR + PROCAR
+                                })
+
+
 # par_rpa = {**def_par, **restart,
 #            **g_smear, **fine_conv,
 #            **write_wave,
@@ -235,5 +244,7 @@ default_parameters = {"relax": par_relax,
                       "gw0": par_gw0,
                       "hybrid": par_hybrid,
                       "gw0_none": par_gw0_none,
-                      "bse": par_bse,}
+                      "bse": par_bse,
+                      "bs_DFT": par_bandstruct_DFT,
+                      "bs_hybrid": par_hybrid}
 

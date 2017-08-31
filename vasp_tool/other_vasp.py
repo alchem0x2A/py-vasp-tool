@@ -6,8 +6,9 @@
 from ase.calculators.vasp import Vasp
 from ase.units import GPa
 from pymatgen.io.vasp import Vasprun, Outcar
-from ase.dft.kpoints import ibz_points, get_bandpath
+from ase.dft.kpoints import special_points, bandpath
 from .paramters import default_parameters
+import numpy
 
 # Some fix for importing
 import sys
@@ -15,6 +16,7 @@ if sys.version_info < (3, 0):
     import patch_vasp
 else:
     from . import patch_vasp
+
 
 # Common class for Vasp from paramters
 class VaspGeneral(Vasp):
@@ -28,11 +30,82 @@ class VaspGeneral(Vasp):
             else:
                 raise ValueError("Profile not recognized !")
         dp.update(**kwargs)
+        self.profile = profile
         # update the paramter
         Vasp.__init__(self, restart=restart,
                       output_template=output_template,
                       track_output=track_output,
                       **dp)
+        
+    def write_bs_kpoints(self, path_string,
+                      intersections=40, lattice_type=None):
+        if lattice_type is None:
+            # TODO use build-in search method
+            raise TypeError("The type of lattice cannot be None")
+        else:
+            self.input_params["kpath"] = path_string
+            if self.profile == "bs_DFT":
+                line_kpts = gen_line_path(path_string,
+                                          lattice_type=lattice_type,
+                                          n_int=None)
+                self.input_params["kpts"] = line_kpts  # no weights
+                self.input_params["kpts_nintersections"] = intersections
+                self.input_params["reciprocal"] = True
+                print(self.input_params["kpts_nintersections"])
+                self.write_kpoints()
+            elif self.profile == "bs_hybrid":
+                line_kpts = gen_line_path(path_string,
+                                          lattice_type=lattice_type,
+                                          n_int=intersections)
+                # read the ibzk
+                kpoints = []
+                with open("IBZKPT", "r") as f_ibz:
+                    f_ibz.readline()
+                    n = int(f_ibz.readline().strip())
+                    f_ibz.readline()
+                    for i in range(n):
+                        l = f_ibz.readline().strip().split()
+                        pts = []
+                        for j in range(3):
+                            pts.append(float(l[j]))
+                        pts.append(int(l[-1]))
+                        kpoints.append(pts)
+                for l in line_kpts:
+                    kpoints.append(l + [0])
+                self.input_params["kpts"] = kpoints
+                self.input_params["reciprocal"] = True
+                self.write_kpoints()
+            
+# Generate Kpoint path using symmetry
+def gen_line_path(kpath, lattice_type, n_int=None):
+    # n_interp = None for generation of line mode,
+    # Otherwise for explicit kpoints
+    valid_pts = special_points[lattice_type]
+    kpoints = []
+    prev = None
+    for i, p in enumerate(kpath):
+        cood = valid_pts[p]
+        # Double the kpoints for intermediate points
+        if i == 0:
+            kpoints.append(cood)
+            prev = cood
+        else:
+            if n_int is None:  # line mode
+                kpoints.append(cood)
+                if i != len(kpath) - 1:
+                    kpoints.append(cood)
+            else:
+                n_int = int(n_int)
+                assert n_int >= 0
+                start = numpy.array(prev)
+                interv = (numpy.array(cood) - start) / (n_int + 1)
+                for i in range(n_int + 1):
+                    pts = start + (i + 1) * interv
+                    kpoints.append(pts.tolist())
+                prev = cood
+    # print(kpoints)
+    return kpoints           
+        
     
 class VaspRelax(Vasp):
     def __init__(self, restart=None, output_template="vasp",
@@ -99,21 +172,7 @@ class VaspGround(Vasp):         # Calculate the ground state, always restart
                       track_output=track_output,
                       **default_params)
 
-# Generate Kpoint path using symmetry
-def gen_line_path(kpath, lattice_type):
-    valid_pts = ibz_points[lattice_type]
-    kpoints = []
-    for i, p in enumerate(kpath):
-        if p == "G":
-            p = "Gamma"
-        cood = valid_pts[p]
-        # Double the kpoints for intermediate points
-        if (i == 0) or (i == len(kpath) - 1):
-            kpoints.append(cood)
-        else:
-            [kpoints.append(cood) for i in range(2)]
-    # print(kpoints)
-    return kpoints
+
 
     
 class VaspBandStructure(Vasp):         # Calculate the ground state, always restart
@@ -226,5 +285,4 @@ class VaspGW(Vasp):         # GW mode
                       **default_params)
         
 if __name__ == "__main__":
-    # Test
     pass
