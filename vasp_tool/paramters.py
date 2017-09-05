@@ -18,7 +18,7 @@ new_start = {"istart": 0,
              "icharg": 2}
 
 restart = {"istart": 1,
-           "icharg": 2}
+           "icharg": 0}         # use wavefunction
 
 g_smear = {"ismear": 0,
            "sigma": 0.01}
@@ -43,7 +43,7 @@ relax_all = {"ibrion": 2,
 }
 
 norelax = {"ibrion": -1,
-           "isif": 1,           # still calculate extern pressure
+           "isif": 1,
            "nsw": 1,
 }
 
@@ -166,6 +166,22 @@ par_bandstruct_DFT = merge_dict(def_par, restart,
                                    "lorbit": 11,  # DOCAR + PROCAR
                                 })
 
+par_bandstruct_hybrid = merge_dict(def_par, restart,
+                                   g_smear, fine_conv,
+                                   write_wave,
+                                   norelax,
+                                   **{"algo": "Damped",
+                                      "precfock": "Normal",
+                                      "npar": 4,
+                                      "isif": None})
+par_bandstruct_DFT = merge_dict(def_par, restart,
+                                g_smear, fine_conv,
+                                write_wave,
+                                norelax,
+                                **{"icharg": 11,  # keep previous charge density calculated
+                                   "lorbit": 11,  # DOCAR + PROCAR
+                                })
+
 
 # par_rpa = {**def_par, **restart,
 #            **g_smear, **fine_conv,
@@ -246,5 +262,5 @@ default_parameters = {"relax": par_relax,
                       "gw0_none": par_gw0_none,
                       "bse": par_bse,
                       "bs_DFT": par_bandstruct_DFT,
-                      "bs_hybrid": par_hybrid}
+                      "bs_hybrid": par_bandstruct_hybrid}
 
