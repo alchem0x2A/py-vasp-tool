@@ -197,7 +197,7 @@ def _write_kpoints(self, directory="", fname=None):
             else:
                 f.write('Reciprocal\n')
             for n in range(NKPTS):
-                f.write('{0:<9} {1:<9} {2:<9}\n'.format(*p['kpts'][n]))
+                f.write('{0:<9} {1:<9} {2:<9} 1\n'.format(*p['kpts'][n]))
 
         # line 5 - only if we are in automatic mode
         if MODE in ['m', 'g']:
