@@ -1,3 +1,4 @@
+
 #####################################################################
 # The patcher for factory ase.calculator.vasp.Vasp class            #
 # will change the behavior of the POSCAR writer to use vasp5 format #
@@ -7,10 +8,13 @@ from ase.calculators.vasp.create_input import GenerateVaspInput
 from ase.calculators.vasp.create_input import bool_keys, int_keys, float_keys
 from ase.calculators.vasp import Vasp
 from pymatgen.io.vasp import Vasprun
+from pymatgen.electronic_structure.bandstructure import Spin
 import os
 import os.path
 import shutil
 from ase.io import read
+from .other_vasp import gen_line_path
+import numpy
 
 # Tell vasp calculator to write the POSCAR using vasp5 style
 
@@ -281,5 +285,105 @@ def optical_transitions(self):
     ot_array = numpy.array(ot_array)
     return ot_array
 
+
+def distance(a, b):
+    if len(a) != len(b):
+        raise ValueError("a and b should be of same dimension!")
+
+    par_dis = [(a[i] - b[i]) ** 2 for i in range(len(a))]
+    return sum(par_dis) ** 0.5
+
+def is_on_path(p, kpath, eps=1e-6):
+    # kpath is a list of points
+    flag = False
+    tot_dis = 0
+    for i in range(len(kpath) - 1):
+        start = kpath[i]
+        end = kpath[i + 1]
+        # print(start, end)
+        # print(distance(start, p),
+        #       distance(p, end),
+        #       distance(start, end))
+        if abs(distance(start, p) + distance(p, end) \
+               - distance(start, end)) < eps:
+            flag = flag or True
+            tot_dis = tot_dis + distance(start, p)
+
+        if flag is True:
+            return flag, tot_dis
+        else:
+            tot_dis = tot_dis + distance(start, end)
+            
+    return flag, tot_dis
+
+def get_distance_nodes(kpath):
+    res = []
+    tot_dis = 0
+    res.append(0)
+    for i in range(len(kpath) - 1):
+        tot_dis = tot_dis + distance(kpath[i], kpath[i + 1])
+        res.append(tot_dis)
+    return res
+
+
+# Get the eigenvalues from the k-points in the kpath
+def get_bands_along_path(self,
+                    kpath=None,
+                    lattice_type=None):
+    if (kpath is None):
+        return self.eigenvalues[Spin.up]
+    elif lattice_type is not None:
+        path_nodes = gen_line_path(kpath,
+                                   lattice_type,
+                                   n_int=0)
+        print(path_nodes)
+        eig = self.eigenvalues[Spin.up]
+        n_bands = eig.shape[1]
+        kpts_path = []
+        line_distance = []
+        energies = [[] for i in range(n_bands)]
+        cbm_kpt = None
+        cbm_e = 1e4
+        vbm_kpt = None
+        vbm_e = -1e4
+        # Generate the valid kpoints list
+        # Get new bandgap
+        for i in range(len(self.actual_kpoints)):
+            kpt = self.actual_kpoints[i]
+            # assert is_on_path(kpt, path_nodes) is True
+            on_path, dist = is_on_path(kpt, path_nodes)
+            if on_path:
+                kpts_path.append(kpt)
+                line_distance.append(dist)
+                energy_occu = eig[i]
+                prev_occu = 1
+                prev_e = -1e4
+                for j in range(len(energy_occu)):
+                    e, occu = energy_occu[j]
+                    energies[j].append(e)
+                    if (prev_occu > 0) and (occu == 0):  # The cbm
+                        if prev_e > vbm_e:
+                            vbm_e = prev_e
+                            vbm_kpt = kpt
+                        if e < cbm_e:
+                            cbm_e = e
+                            cbm_kpt = kpt
+                    prev_e = e
+                    prev_occu = occu
+
+        energies = numpy.array(energies)
+        bandgap = cbm_e - vbm_e
+        results = {"nbands": n_bands,
+                   "bandgap": bandgap,
+                   "band_energies": energies,
+                   "kpts_path": kpts_path,
+                   "line_distance": line_distance,
+                   "cbm": (cbm_e, cbm_kpt),
+                   "vbm": (vbm_e, vbm_kpt),
+                   "nodes_distance": get_distance_nodes(path_nodes),
+        }
+        return results
+
 Vasprun.converged_electronic = _converged_electronic
 Vasprun.optical_transitions = optical_transitions
+Vasprun.get_bands_along_path = get_bands_along_path
