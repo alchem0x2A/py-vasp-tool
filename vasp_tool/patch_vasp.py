@@ -286,14 +286,20 @@ def optical_transitions(self):
     return ot_array
 
 
-def distance(a, b):
+def distance(a, b, lattice=[[1, 0, 0],
+                            [0, 1, 0],
+                            [0, 0, 1]]):
     if len(a) != len(b):
         raise ValueError("a and b should be of same dimension!")
-
-    par_dis = [(a[i] - b[i]) ** 2 for i in range(len(a))]
+    a_ = [sum([lattice[i][j] * a[i] for i in range(len(a))]) for j in range(len(lattice))]
+    b_ = [sum([lattice[i][j] * b[i] for i in range(len(b))]) for j in range(len(lattice))]
+    par_dis = [(a_[i] - b_[i]) ** 2 for i in range(len(a))]
     return sum(par_dis) ** 0.5
 
-def is_on_path(p, kpath, eps=1e-6):
+def is_on_path(p, kpath, eps=1e-6,
+               lattice=[[1, 0, 0],
+                        [0, 1, 0],
+                        [0, 0, 1]]):
     # kpath is a list of points
     flag = False
     tot_dis = 0
@@ -307,21 +313,27 @@ def is_on_path(p, kpath, eps=1e-6):
         if abs(distance(start, p) + distance(p, end) \
                - distance(start, end)) < eps:
             flag = flag or True
-            tot_dis = tot_dis + distance(start, p)
+            tot_dis = tot_dis + distance(start, p,
+                                         lattice=lattice)
 
         if flag is True:
             return flag, tot_dis
         else:
-            tot_dis = tot_dis + distance(start, end)
+            tot_dis = tot_dis + distance(start, end,
+                                         lattice=lattice)
             
     return flag, tot_dis
 
-def get_distance_nodes(kpath):
+def get_distance_nodes(kpath,
+                       lattice=[[1, 0, 0],
+                                [0, 1, 0],
+                                [0, 0, 1]]):
     res = []
     tot_dis = 0
     res.append(0)
     for i in range(len(kpath) - 1):
-        tot_dis = tot_dis + distance(kpath[i], kpath[i + 1])
+        tot_dis = tot_dis + distance(kpath[i], kpath[i + 1],
+                                     lattice=lattice)
         res.append(tot_dis)
     return res
 
@@ -346,12 +358,14 @@ def get_bands_along_path(self,
         cbm_e = 1e4
         vbm_kpt = None
         vbm_e = -1e4
+        lat_rec = self.lattice_rec.matrix
         # Generate the valid kpoints list
         # Get new bandgap
         for i in range(len(self.actual_kpoints)):
             kpt = self.actual_kpoints[i]
             # assert is_on_path(kpt, path_nodes) is True
-            on_path, dist = is_on_path(kpt, path_nodes)
+            on_path, dist = is_on_path(kpt, path_nodes,
+                                       lattice=lat_rec)
             if on_path:
                 kpts_path.append(kpt)
                 line_distance.append(dist)
@@ -370,17 +384,21 @@ def get_bands_along_path(self,
                             cbm_kpt = kpt
                     prev_e = e
                     prev_occu = occu
-
+        tot_dist = max(line_distance)
+        print(tot_dist)
+        nd = get_distance_nodes(path_nodes,
+                                lattice=lat_rec)
+        
         energies = numpy.array(energies)
         bandgap = cbm_e - vbm_e
         results = {"nbands": n_bands,
                    "bandgap": bandgap,
                    "band_energies": energies,
                    "kpts_path": kpts_path,
-                   "line_distance": line_distance,
+                   "line_dist": [d / tot_dist for d in line_distance],
                    "cbm": (cbm_e, cbm_kpt),
                    "vbm": (vbm_e, vbm_kpt),
-                   "nodes_distance": get_distance_nodes(path_nodes),
+                   "node_dist": [d / tot_dist for d in nd],
         }
         return results
 
