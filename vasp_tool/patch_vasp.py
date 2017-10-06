@@ -100,7 +100,7 @@ def _run(self):
         with open("vasprun.xml", "rb+") as f:
             f.seek(-12, 2)                        # to the -12
             s = f.read()
-            s.decode("utf8")
+            s = s.decode("utf8")
             if s.strip() != "</modeling>":  # Not the last line
                 f.seek(0, 2)                # To the last
                 f.write(b"</modeling>\n")
